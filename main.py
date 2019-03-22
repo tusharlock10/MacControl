@@ -3,9 +3,27 @@ import os
 from fire import Fire
 from tj import color_text as ct
 import subprocess
+import sys
 
 error = None
 warn = None
+
+# ADD A FUNCTION IN MAIN TO SOLVE EQUATIONS
+# AND WRITE FUNCTION TO KNOW TIME OF EXECUTION OF SOMETHING
+
+
+def main():
+    global cmd_dict
+    arg = sys.argv[1]
+    if arg not in cmd_dict:
+        if arg in ['mute', 'muted']:
+            volume(arg='mute')
+        elif arg in ['unmute']:
+            volume(arg='unmute')
+    else:
+
+
+cmd_dict = {}
 
 
 def clr(num, warn=None):
@@ -41,36 +59,46 @@ def get_num(num):
 
 def volume(arg='output', vol=None):
     global error, warn
-    arg=arg.lower()
+    arg = arg.lower()
     if arg in ['mute', 'muted', 'unmute']:
-        vol=1
-
+        vol = 1
 
     if vol:
         vol = get_num(vol)
-        if 0.0 < vol < 1.0:
+        if 0 < vol <= 1:
             vol = round(vol*100, None)
 
-        
-        if arg in ['s','speaker','speakers','output','o']:
-            arg='output volume %s' % vol
-        elif arg in ['i', 'mic','microphone','mics','microphones', 'input', 'i']:
-            arg='input volume %s' % vol
-        elif arg in ['a', 'alert','notify', 'notification']:
-            arg='alert volume %s' % vol
+        vol = str(vol)
+        if arg in ['s', 'speaker', 'speakers', 'output', 'o', 'media']:
+            arg = 'output volume %s' % vol
+            to_print = ct('SPEAKER VOLUME is now set to %s' %
+                          vol+'%', text_color='OLIVE', bold=1)
+        elif arg in ['i', 'mic', 'microphone', 'mics', 'microphones', 'input', 'i']:
+            arg = 'input volume %s' % vol
+            to_print = ct('MIC VOLUME is now set to %s' %
+                          vol+'%', text_color='YELLOW', bold=1)
+        elif arg in ['a', 'alert', 'notify', 'notification']:
+            arg = 'alert volume %s' % vol
+            to_print = ct('ALERT VOLUME is now set to %s' %
+                          vol+'%', text_color='BLUE', bold=1)
         elif arg in ['mute', 'muted']:
-            arg="output muted true"
+            arg = "output muted true"
+            to_print = ct('SPEAKER VOLUME is now muted',
+                          text_color='PURPLE', bold=1)
         elif arg in ['unmute']:
-            arg="output muted false"
+            arg = "output muted false"
+            to_print = ct('SPEAKER VOLUME is now UNMUTED',
+                          text_color='PURPLE', bold=1)
         else:
-            arg='output volume %s' % vol
-            warn="Enter available options to control volume are\n * speaker\n * mic\n * alert\n\
-mute or unmute\neg. control volume mute\neg. control volume mic 20"
+            arg = 'output volume %s' % vol
+            to_print = ct('SPEAKER VOLUME is now set to %s' %
+                          vol+'%', text_color='OLIVE', bold=1)
+            warn = "Available options to control volume are -\n * speaker\n * mic\n * alert\n\
+mute or unmute\neg. control volume mute\neg. control volume mic 20\nYOU ENTERED: %s" % arg
 
         cmd = "osascript -e 'set volume %s'" % arg
         os.system(cmd)
-        print(ct('SPEAKER VOLUME is now set to %s' %
-                 vol, text_color='OLIVE', bold=1))
+        print(to_print)
 
     else:
         cmd = "osascript -e 'get volume settings'"
@@ -114,13 +142,14 @@ def brightness(num=None):
         print()
 
 
-def backlight(num=None):
-    brightness(num)
-    print()
+cmd_dict.update({a: brightness for a in ['brightness', 'screen', 'b']})
+cmd_dict.update({'v': volume, 'volume': volume, 'vol': volume})
+cmd_dict.update({a: keyboard for a in ['keyboard', 'k', 'key', 'keyboard-brightness',
+                                       'kbacklight', 'klight', 'backlight']})
 
 
 if __name__ == '__main__':
-    Fire()
+    Fire(cmd_dict)
     if error:
         print(ct(" * ERROR * ", text_color="RED",
                  background_color="WHITE", bold=True)+" | "+error)
