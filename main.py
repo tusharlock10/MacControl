@@ -4,6 +4,8 @@ from fire import Fire
 from tj import color_text as ct
 import subprocess
 import sys
+from sympy.solvers import solve
+from sympy import sympify
 
 error = None
 warn = None
@@ -12,15 +14,40 @@ warn = None
 # AND WRITE FUNCTION TO KNOW TIME OF EXECUTION OF SOMETHING
 
 
+def solver(*args):
+    """Here arg is considered an equation"""
+    arg = ''.join([str(i) for i in args])
+
+    try:
+        answer = eval(arg)
+    except:
+        to_eval = arg.replace("=", ",")
+        eq = "Eq(" + to_eval + ")"
+        answer = solve(eq)
+
+        print("EQUATION IS:", to_eval)
+        print(answer, type(answer)==bool,type(answer) )
+        if type(answer)==bool:
+            print("ANSWER IS:",answer)
+        else:
+            print("The Roots of this equation are: ")
+            for i in range(len(answer)):
+                j = answer[i]
+                print(f"ROOT {i+1}: ", j)
+        print()
+
+
 def main():
     global cmd_dict
-    arg = sys.argv[1]
+    all_arg = sys.argv[1:]
+    arg = all_arg[0]
     if arg not in cmd_dict:
         if arg in ['mute', 'muted']:
             volume(arg='mute')
         elif arg in ['unmute']:
             volume(arg='unmute')
     else:
+        solver(arg)
 
 
 cmd_dict = {}
@@ -146,6 +173,7 @@ cmd_dict.update({a: brightness for a in ['brightness', 'screen', 'b']})
 cmd_dict.update({'v': volume, 'volume': volume, 'vol': volume})
 cmd_dict.update({a: keyboard for a in ['keyboard', 'k', 'key', 'keyboard-brightness',
                                        'kbacklight', 'klight', 'backlight']})
+cmd_dict.update({'solve': solver})
 
 
 if __name__ == '__main__':
